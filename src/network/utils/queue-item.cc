@@ -21,6 +21,7 @@
 #include "queue-item.h"
 #include "ns3/packet.h"
 #include "ns3/log.h"
+#include "ns3/tcp-header.h"
 
 namespace ns3 {
 
@@ -53,6 +54,13 @@ QueueItem::GetSize (void) const
   return m_packet->GetSize ();
 }
 
+SequenceNumber32
+QueueItem::GetAckSeqHeader (void)
+{
+  return SequenceNumber32 (0);
+}
+
+
 bool
 QueueItem::GetUint8Value (QueueItem::Uint8Values field, uint8_t& value) const
 {
@@ -63,7 +71,7 @@ QueueItem::GetUint8Value (QueueItem::Uint8Values field, uint8_t& value) const
 void
 QueueItem::Print (std::ostream& os) const
 {
-  os << GetPacket();
+  os << GetPacket ();
 }
 
 std::ostream & operator << (std::ostream &os, const QueueItem &item)
@@ -72,6 +80,52 @@ std::ostream & operator << (std::ostream &os, const QueueItem &item)
   return os;
 }
 
+uint16_t
+QueueItem::TcpSourcePort (void)
+{
+  return 0;
+}
+
+uint16_t
+QueueItem::TcpDestinationPort (void)
+{
+  return 0;
+}
+
+QueueItem::SackList
+QueueItem::TcpGetSackList (void)
+{
+  QueueItem::SackList sack;
+  return sack;
+}
+
+bool
+QueueItem::TcpGetTimestamp (uint32_t &tstamp,uint32_t &tsecr)
+{
+  return false;
+}
+
+uint8_t
+QueueItem::GetL4Protocol (void)
+{
+  return 6;
+}
+
+void
+QueueItem::GetSourceL3address (Ipv4Address &src)
+{
+}
+
+void
+QueueItem::GetDestL3address (Ipv4Address &Dest)
+{
+}
+
+bool
+QueueItem::HasTcpOption (uint8_t kind)
+{
+  return false;
+}
 
 QueueDiscItem::QueueDiscItem (Ptr<Packet> p, const Address& addr, uint16_t protocol)
   : QueueItem (p),
@@ -82,7 +136,7 @@ QueueDiscItem::QueueDiscItem (Ptr<Packet> p, const Address& addr, uint16_t proto
   NS_LOG_FUNCTION (this << p << addr << protocol);
 }
 
-QueueDiscItem::~QueueDiscItem()
+QueueDiscItem::~QueueDiscItem ()
 {
   NS_LOG_FUNCTION (this);
 }

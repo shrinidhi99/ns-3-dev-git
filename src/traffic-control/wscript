@@ -21,6 +21,7 @@ def build(bld):
       'model/prio-queue-disc.cc',
       'model/mq-queue-disc.cc',
       'model/tbf-queue-disc.cc',
+      'model/ack-filter.cc',
       'model/cobalt-queue-disc.cc',
       'helper/traffic-control-helper.cc',
       'helper/queue-disc-container.cc'
@@ -40,12 +41,6 @@ def build(bld):
       'test/cobalt-queue-disc-test-suite.cc'
         ]
 
-    # Tests encapsulating example programs should be listed here
-    if (bld.env['ENABLE_EXAMPLES']):
-        module_test.source.extend([
-        #   'test/traffic-control-examples-test-suite.cc',
-            ])
-    
     headers = bld(features='ns3header')
     headers.module = 'traffic-control'
     headers.source = [
@@ -61,6 +56,7 @@ def build(bld):
       'model/prio-queue-disc.h',
       'model/mq-queue-disc.h',
       'model/tbf-queue-disc.h',
+      'model/ack-filter.h',
       'model/cobalt-queue-disc.h',
       'helper/traffic-control-helper.h',
       'helper/queue-disc-container.h'

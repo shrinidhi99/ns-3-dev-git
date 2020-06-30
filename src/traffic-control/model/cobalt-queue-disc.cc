@@ -33,6 +33,7 @@
 #include "ns3/object-factory.h"
 #include "ns3/drop-tail-queue.h"
 #include "ns3/net-device-queue-interface.h"
+#include "ns3/ack-filter.h"
 #include <climits>
 
 
@@ -54,6 +55,11 @@ TypeId CobaltQueueDisc::GetTypeId (void)
                    MakeQueueSizeAccessor (&QueueDisc::SetMaxSize,
                                           &QueueDisc::GetMaxSize),
                    MakeQueueSizeChecker ())
+    .AddAttribute ("MinBytes",
+                   "The Cobalt algorithm minbytes parameter.",
+                   UintegerValue (1500),
+                   MakeUintegerAccessor (&CobaltQueueDisc::m_minBytes),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("Interval",
                    "The Cobalt algorithm interval",
                    StringValue ("100ms"),
@@ -68,6 +74,11 @@ TypeId CobaltQueueDisc::GetTypeId (void)
                    "True to use ECN (packets are marked instead of being dropped)",
                    BooleanValue (false),
                    MakeBooleanAccessor (&CobaltQueueDisc::m_useEcn),
+                   MakeBooleanChecker ())
+    .AddAttribute ("UseAckFilter",
+                   "True to (gdb) use Ack Filter (Drops Acks that ack less than current ack)",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&CobaltQueueDisc::m_useAckFilter),
                    MakeBooleanChecker ())
     .AddAttribute ("Pdrop",
                    "Marking Probability",
@@ -329,13 +340,27 @@ CobaltQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
       NS_LOG_LOGIC ("Queue full -- dropping pkt");
       int64_t now = CoDelGetTime ();
       // Call this to update Blue's drop probability
-      CobaltQueueFull (now);
+      CobaltQueueFull (now); 
       DropBeforeEnqueue (item, OVERLIMIT_DROP);
       return false;
     }
 
-  bool retval = GetInternalQueue (0)->Enqueue (item);
-
+  // bool retval = GetInternalQueue (0)->Enqueue (item);
+  Ptr<Queue<QueueDiscItem>> queue = GetInternalQueue (0);
+  bool retval;
+  if(m_useAckFilter){
+    AckFilter ack;
+    retval = ack.AckFilterMain(queue, item);
+  }
+  retval = GetInternalQueue (0)->Enqueue (item);
+ 
+  // if(!retval){
+  // std::cout<< "Adding packet with sequence number " << item->GetAckSeqHeader() <<std::endl;
+  
+  //   retval = !retval;
+  // }else{
+  //   DropBeforeEnqueue(item, "Ack Filter");
+  // }
   // If Queue::Enqueue fails, QueueDisc::Drop is called by the internal queue
   // because QueueDisc::AddInternalQueue sets the drop callback
 

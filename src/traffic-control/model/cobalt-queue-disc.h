@@ -214,6 +214,8 @@ private:
   // Common to CoDel and Blue
   // Maintained by Cobalt
   Stats m_stats;                          //!< Cobalt statistics
+  // Supplied by user
+  uint32_t m_minBytes;                    //!< Minimum bytes in queue to allow a packet drop
 
   // Codel parameters
   // Maintained by Cobalt
@@ -227,6 +229,7 @@ private:
   Time m_interval;                        //!< 100 ms sliding minimum time window width
   Time m_target;                          //!< 5 ms target queue delay
   bool m_useEcn;                          //!< True if ECN is used (packets are marked instead of being dropped)
+  bool m_useAckFilter;                    //!< True if Ack filter should be used 
 
   // Blue parameters
   // Maintained by Cobalt

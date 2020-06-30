@@ -57,6 +57,14 @@ Ipv4QueueDiscItem::GetHeader (void) const
   return m_header;
 }
 
+SequenceNumber32
+Ipv4QueueDiscItem::GetAckSeqHeader (void)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  return tcpHdr.GetAckNumber ();
+}
+
 void Ipv4QueueDiscItem::AddHeader (void)
 {
   NS_LOG_FUNCTION (this);
@@ -106,6 +114,19 @@ Ipv4QueueDiscItem::GetUint8Value (QueueItem::Uint8Values field, uint8_t& value) 
       value = m_header.GetTos ();
       ret = true;
       break;
+    case TCP_FLAGS:
+      uint8_t prot = m_header.GetProtocol ();
+      if (prot == 6)
+        {
+          TcpHeader tcpHdr;
+          GetPacket ()->PeekHeader (tcpHdr);
+          value = tcpHdr.GetFlags ();
+          ret = true;
+        }
+      else
+        {
+          ret = false;
+        }
     }
 
   return ret;
@@ -166,4 +187,74 @@ Ipv4QueueDiscItem::Hash (uint32_t perturbation) const
   return hash;
 }
 
+uint16_t
+Ipv4QueueDiscItem::TcpSourcePort (void)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  return tcpHdr.GetSourcePort ();
+}
+
+uint16_t
+Ipv4QueueDiscItem::TcpDestinationPort (void)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  return tcpHdr.GetDestinationPort ();
+}
+
+Ipv4QueueDiscItem::SackList
+Ipv4QueueDiscItem::TcpGetSackList (void)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  Ptr<const TcpOptionSack> s = DynamicCast<const TcpOptionSack> (tcpHdr.GetOption (TcpOption::SACK));
+  TcpOptionSack::SackList list = s->GetSackList ();
+  return list;
+}
+
+bool
+Ipv4QueueDiscItem::TcpGetTimestamp (uint32_t &tstamp,uint32_t &tsecr)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  if (tcpHdr.HasOption (TcpOption::TS))
+    {
+      Ptr<const TcpOptionTS> ts = DynamicCast<const TcpOptionTS> (tcpHdr.GetOption (TcpOption::TS));
+      tstamp = ts->GetTimestamp ();
+      tsecr = ts->GetEcho ();
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
+
+uint8_t
+Ipv4QueueDiscItem::GetL4Protocol (void)
+{
+  uint8_t prot = m_header.GetProtocol ();
+  return prot;
+}
+
+void
+Ipv4QueueDiscItem::GetSourceL3address (Ipv4Address &src)
+{
+  src = m_header.GetSource ();
+}
+
+void
+Ipv4QueueDiscItem::GetDestL3address (Ipv4Address &Dest)
+{
+  Dest = m_header.GetDestination ();
+}
+
+bool
+Ipv4QueueDiscItem::HasTcpOption (uint8_t kind)
+{
+  TcpHeader tcpHdr;
+  GetPacket ()->PeekHeader (tcpHdr);
+  return tcpHdr.HasOption (kind);
+}
 } // namespace ns3

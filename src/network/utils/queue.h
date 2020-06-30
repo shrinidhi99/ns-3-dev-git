@@ -298,11 +298,11 @@ public:
   /// Define ItemType as the type of the stored elements
   typedef Item ItemType;
 
-protected:
+public:
 
   /// Const iterator.
   typedef typename std::list<Ptr<Item> >::const_iterator ConstIterator;
-  /// Iterator.
+    /// Iterator.
   typedef typename std::list<Ptr<Item> >::iterator Iterator;
 
   /**
@@ -322,7 +322,7 @@ protected:
   ConstIterator begin (void) const;
 
   /**
-   * \brief Get an iterator which refers to the first item in the queue.
+   * \brief Get a const iterator which indicates past-the-last item in the queue.
    *
    * Subclasses can browse the items in the queue by using an iterator
    *
