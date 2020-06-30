@@ -76,7 +76,7 @@ TypeId CobaltQueueDisc::GetTypeId (void)
                    MakeBooleanAccessor (&CobaltQueueDisc::m_useEcn),
                    MakeBooleanChecker ())
     .AddAttribute ("UseAckFilter",
-                   "True to (gdb) use Ack Filter (Drops Acks that ack less than current ack)",
+                   "True to use Ack Filter (Drops Acks that ack less than current ack)",
                    BooleanValue (false),
                    MakeBooleanAccessor (&CobaltQueueDisc::m_useAckFilter),
                    MakeBooleanChecker ())

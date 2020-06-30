@@ -937,19 +937,19 @@ public:
     : TestSuite ("cobalt-queue-disc", UNIT)
   {
     // Test 1: simple enqueue/dequeue with no drops
-    // AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (PACKETS), TestCase::QUICK);
-    // AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (BYTES), TestCase::QUICK);
+    AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (PACKETS), TestCase::QUICK);
+    AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (BYTES), TestCase::QUICK);
     // Test 2: Drop test
-    // AddTestCase (new CobaltQueueDiscDropTest (), TestCase::QUICK);
+    AddTestCase (new CobaltQueueDiscDropTest (), TestCase::QUICK);
     // Test 3: Drop test
-    // AddTestCase (new CobaltBasicSynAckTest (PACKETS), TestCase::QUICK);
+    AddTestCase (new CobaltBasicSynAckTest (PACKETS), TestCase::QUICK);
     // // Test 4:
-    // // AddTestCase (new AckFilterEceCwrFlagTest(PACKETS), TestCase::QUICK);
+    // AddTestCase (new AckFilterEceCwrFlagTest(PACKETS), TestCase::QUICK);
     // // Test 5:
-    // AddTestCase (new AckFilterSackPermittedTest(PACKETS), TestCase::QUICK);
+    AddTestCase (new AckFilterSackPermittedTest(PACKETS), TestCase::QUICK);
 
-    // AddTestCase (new AckFilterUdpEnqueueTest(PACKETS), TestCase::QUICK);
-    // AddTestCase (new AckFilterUrgFlagTest(PACKETS), TestCase::QUICK);
+    AddTestCase (new AckFilterUdpEnqueueTest(PACKETS), TestCase::QUICK);
+    AddTestCase (new AckFilterUrgFlagTest(PACKETS), TestCase::QUICK);
     // AddTestCase (new AckFilterDropHeadTest(PACKETS), TestCase::QUICK);
 
   }
