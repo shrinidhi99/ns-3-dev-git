@@ -507,6 +507,7 @@ public:
    * \param mode the mode
    */
   AckFilterEceCwrFlagTest (QueueSizeUnit mode);
+  void AddPacket(Ptr<Packet> p,Ptr<CobaltQueueDisc> queue, Ipv4Header hdr);
   virtual void DoRun (void);
 
   /**
@@ -528,9 +529,18 @@ AckFilterEceCwrFlagTest::AckFilterEceCwrFlagTest (QueueSizeUnit mode)
 }
 
 void
+AckFilterEceCwrFlagTest::AddPacket (Ptr<Packet> p, Ptr<CobaltQueueDisc> queue, Ipv4Header hdr)
+{
+  // Ptr<Packet> p = Create<Packet> (100);
+  Address dest;
+  Ptr<Ipv4QueueDiscItem> item = Create<Ipv4QueueDiscItem> (p, dest, 0, hdr);
+  queue->Enqueue (item);
+}
+
+void
 AckFilterEceCwrFlagTest::DoRun (void)
 {
-  Ptr<CobaltQueueDisc> queue = CreateObject<CobaltQueueDisc> ();
+  Ptr<CobaltQueueDisc> queue = CreateObjectWithAttributes<CobaltQueueDisc> ("UseAckFilter", BooleanValue (true));
 
   uint32_t pktSize = 1000;
   uint32_t modeSize = 0;
@@ -557,16 +567,20 @@ AckFilterEceCwrFlagTest::DoRun (void)
   queue->Initialize ();
 
   TcpHeader tcpHdr1;
-  uint8_t flags1 =TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR;
-  tcpHdr1.SetFlags (flags1);
+  // uint8_t flags1 =TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR;
+  tcpHdr1.SetFlags (TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR);
   SequenceNumber32 num1 (1);
   tcpHdr1.SetAckNumber (num1);
+  tcpHdr1.SetSourcePort(22);
+  tcpHdr1.SetDestinationPort(25);
 
   TcpHeader tcpHdr2;
-  uint8_t flags2 =TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR;
-  tcpHdr2.SetFlags (flags2);
+  // uint8_t flags2 =TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR;
+  tcpHdr2.SetFlags (TcpHeader::ACK|TcpHeader::ECE|TcpHeader::CWR);
   SequenceNumber32 num2 (1501);
   tcpHdr2.SetAckNumber (num2);
+  tcpHdr2.SetSourcePort(22);
+  tcpHdr2.SetDestinationPort(25);
 
   Ptr<Packet> p1, p2;
   p1 = Create<Packet> (pktSize);
@@ -574,11 +588,24 @@ AckFilterEceCwrFlagTest::DoRun (void)
   p2 = Create<Packet> (pktSize);
   p2->AddHeader(tcpHdr2);
 
+  Ipv4Header hdr;
+  hdr.SetPayloadSize (100);
+  hdr.SetSource (Ipv4Address ("10.10.1.1"));
+  hdr.SetDestination (Ipv4Address ("10.10.1.2"));
+  hdr.SetProtocol (6);
+
+  Ipv4Header hdr1;
+  hdr1.SetPayloadSize (100);
+  hdr1.SetSource (Ipv4Address ("10.10.1.2"));
+  hdr1.SetDestination (Ipv4Address ("10.10.1.3"));
+  hdr1.SetProtocol (6);
 
   NS_TEST_EXPECT_MSG_EQ (queue->GetCurrentSize ().GetValue (), 0 * modeSize, "There should be no packets in queue");
-  queue->Enqueue (Create<CobaltQueueDiscTestItem> (p1, dest,0, false));
+  // queue->Enqueue (Create<CobaltQueueDiscTestItem> (p1, dest,0, false));
+  AddPacket (p1, queue, hdr);
   NS_TEST_EXPECT_MSG_EQ (queue->GetCurrentSize ().GetValue (), 1 * modeSize, "There should be one packet in queue");
-  queue->Enqueue (Create<CobaltQueueDiscTestItem> (p2, dest,0, false));
+  // queue->Enqueue (Create<CobaltQueueDiscTestItem> (p2, dest,0, false));
+  AddPacket (p2, queue, hdr);
   NS_TEST_EXPECT_MSG_EQ (queue->GetCurrentSize ().GetValue (), 1 * modeSize, "There should be one packet in queue, the first packet was dropped");
   }
 
@@ -820,7 +847,7 @@ AckFilterDropHeadTest::AddPacket (Ptr<Packet> p, Ptr<CobaltQueueDisc> queue, Ipv
 void
 AckFilterDropHeadTest::DoRun (void)
 {
-  Ptr<CobaltQueueDisc> queue = CreateObject<CobaltQueueDisc> ();
+  Ptr<CobaltQueueDisc> queue = CreateObjectWithAttributes<CobaltQueueDisc> ("UseAckFilter", BooleanValue (true));
 
   uint32_t pktSize = 1000;
   uint32_t modeSize = 0;
@@ -939,18 +966,18 @@ public:
     // Test 1: simple enqueue/dequeue with no drops
     AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (PACKETS), TestCase::QUICK);
     AddTestCase (new CobaltQueueDiscBasicEnqueueDequeue (BYTES), TestCase::QUICK);
-    // Test 2: Drop test
+    // // Test 2: Drop test
     AddTestCase (new CobaltQueueDiscDropTest (), TestCase::QUICK);
     // Test 3: Drop test
     AddTestCase (new CobaltBasicSynAckTest (PACKETS), TestCase::QUICK);
-    // // Test 4:
-    // AddTestCase (new AckFilterEceCwrFlagTest(PACKETS), TestCase::QUICK);
-    // // Test 5:
+    // Test 4:
+    AddTestCase (new AckFilterEceCwrFlagTest(PACKETS), TestCase::QUICK);
+    // Test 5:
     AddTestCase (new AckFilterSackPermittedTest(PACKETS), TestCase::QUICK);
 
     AddTestCase (new AckFilterUdpEnqueueTest(PACKETS), TestCase::QUICK);
     AddTestCase (new AckFilterUrgFlagTest(PACKETS), TestCase::QUICK);
-    // AddTestCase (new AckFilterDropHeadTest(PACKETS), TestCase::QUICK);
+    AddTestCase (new AckFilterDropHeadTest(PACKETS), TestCase::QUICK);
 
   }
 } g_cobaltQueueTestSuite; ///< the test suite
